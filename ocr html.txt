@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>AI OCR Text Extractor</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(18px);
+            padding: 45px;
+            border-radius: 20px;
+            width: 550px;
+            color: white;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
+            text-align: center;
+        }
+
+        h2 {
+            margin-bottom: 30px;
+            font-weight: 600;
+        }
+
+        /* Upload Box */
+        .upload-box {
+            border: 2px dashed rgba(255,255,255,0.7);
+            padding: 35px;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: 0.3s;
+            margin: 0 auto 20px auto;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .upload-box:hover {
+            background: rgba(255,255,255,0.15);
+            transform: scale(1.02);
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 12px;
+            background: linear-gradient(45deg, #ff6a00, #ff8c42);
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+            font-size: 15px;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+        }
+
+        .preview img {
+            max-width: 100%;
+            border-radius: 15px;
+            margin-top: 15px;
+        }
+
+        .text-section {
+            margin-top: 30px;
+            text-align: left;
+        }
+
+        .text-section h3 {
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 18px;
+            border-radius: 15px;
+            border: none;
+            resize: none;
+            font-size: 15px;
+            background: #ffffff;
+            color: #333;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+            min-height: 160px;
+        }
+
+        .actions {
+            margin-top: 15px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .actions button {
+            flex: 1;
+            background: #4CAF50;
+        }
+
+        .actions button:last-child {
+            background: #2196F3;
+        }
+
+        .spinner {
+            border: 5px solid rgba(255,255,255,0.3);
+            border-top: 5px solid white;
+            border-radius: 50%;
+            width: 35px;
+            height: 35px;
+            animation: spin 1s linear infinite;
+            margin: 15px auto;
+        }
+
+        @keyframes spin {
+            100% { transform: rotate(360deg); }
+        }
+
+        #stats {
+            margin-top: 8px;
+            font-size: 14px;
+            color: #eee;
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2>AI OCR Text Extractor</h2>
+
+    <form method="POST" enctype="multipart/form-data">
+
+        <label for="imageInput" class="upload-box">
+            📂 Click to Upload Image
+            <input type="file" name="image" id="imageInput" required>
+        </label>
+
+        <button type="submit">Extract Text</button>
+
+        <div id="loader" style="display:none;">
+            <div class="spinner"></div>
+        </div>
+
+    </form>
+
+    <div class="preview">
+        <img id="previewImg" />
+    </div>
+
+    <div class="text-section">
+        <h3>Extracted Text</h3>
+        <textarea id="outputText" placeholder="Your extracted text will appear here...">{{ text }}</textarea>
+
+        <div id="stats"></div>
+
+        <div class="actions">
+            <button type="button" onclick="copyText()">Copy</button>
+            <button type="button" onclick="downloadText()">Download</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const imageInput = document.getElementById("imageInput");
+    const previewImg = document.getElementById("previewImg");
+    const form = document.querySelector("form");
+    const loader = document.getElementById("loader");
+    const textarea = document.getElementById("outputText");
+    const stats = document.getElementById("stats");
+
+    imageInput.addEventListener("change", function() {
+        const file = this.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.addEventListener("load", function() {
+                previewImg.setAttribute("src", this.result);
+            });
+            reader.readAsDataURL(file);
+        }
+    });
+
+    form.addEventListener("submit", function() {
+        loader.style.display = "block";
+    });
+
+    function copyText() {
+        textarea.select();
+        document.execCommand("copy");
+        alert("Text copied!");
+    }
+
+    function downloadText() {
+        const text = textarea.value;
+        const blob = new Blob([text], { type: "text/plain" });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = "extracted_text.txt";
+        link.click();
+    }
+
+    function updateStats() {
+        const text = textarea.value;
+        const words = text.trim().split(/\s+/).filter(Boolean).length;
+        const chars = text.length;
+        stats.innerText = Words: ${words} | Characters: ${chars};
+    }
+
+    textarea.addEventListener("input", updateStats);
+    window.addEventListener("load", updateStats);
+</script>
+
+</body>
+</html>
